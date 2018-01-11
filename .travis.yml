@@ -9,9 +9,12 @@ dist: trusty
 python: '2.7'
 
 addons:
+  sources:
+    - ubuntu-toolchain-r-test
   apt:
     packages:
     - python3-pip
+    - libstdc++-4.9-dev
 
 env:
   global:

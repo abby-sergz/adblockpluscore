@@ -13,6 +13,13 @@ addons:
     packages:
     - python3-pip
 
+env:
+  global:
+    - PATH=${PATH}:${TRAVIS_BUILD_DIR}/third_party/ninja
+  matrix:
+    - BUILDTYPE=release
+    - BUILDTYPE=debug
+
 install:
   - nvm install 8.9.4
   - mkdir -p third_party
@@ -25,8 +32,8 @@ before_script:
   - npm install
 
 script:
-  - meson --buildtype debug build/debug 
-  - ninja -C build/debug
+  - meson --buildtype ${BUILDTYPE} build/${BUILDTYPE}
+  - ninja -C build/${BUILDTYPE}
   - npm test
 
 notifications:

@@ -8,13 +8,23 @@ dist: trusty
 
 python: '2.7'
 
-before_script:
-  - ./ensure_dependencies.py
+addons:
+  apt:
+    packages:
+    - ninja-build
+
+install:
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew update; brew install ninja; fi
   - wget -qO- https://raw.githubusercontent.com/creationix/nvm/v0.33.8/install.sh | bash
   - nvm install 8.9.4
-  - npm install
+  - bash .travis/prepare-emscripten.sh
+
+before_script:
+  - ./ensure_dependencies.py
 
 script:
+  - meson --version
+  - npm install
   - npm test
 
 notifications:

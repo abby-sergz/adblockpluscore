@@ -12,6 +12,7 @@ addons:
   apt:
     packages:
     - ninja-build
+    - python3-pip
 
 install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew update; brew install ninja; fi

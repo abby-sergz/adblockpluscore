@@ -8,10 +8,7 @@ ls third_party
 pushd third_party/emsdk-portable
 
 ./emsdk update
-./emsdk install emscripten-tag-1.37.3-64bit > /dev/null
-./emsdk activate emscripten-tag-1.37.3-64bit
-
-pip3 install -q --user meson
-ls ~/.local/bin
+./emsdk install sdk-1.37.3-64bit > /dev/null
+./emsdk activate sdk-1.37.3-64bit
 
 popd

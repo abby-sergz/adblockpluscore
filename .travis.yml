@@ -21,6 +21,7 @@ env:
     - BUILDTYPE=debug
 
 install:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install python3; fi
   - nvm install 8.9.4
   - mkdir -p third_party
   - bash .travis/prepare-emscripten.sh

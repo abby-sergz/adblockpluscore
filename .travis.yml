@@ -22,11 +22,7 @@ env:
 
 install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install python3; fi
-  - nvm install 8.9.4
-  - mkdir -p third_party
-  - bash .travis/prepare-emscripten.sh
-  - bash .travis/prepare-ninja.sh
-  - pip3 install -q --user meson
+  - bash .travis/travis-install.sh
   - export PATH=${PATH}:$(python3 -c "import sysconfig;print(sysconfig.get_paths('posix_user')['scripts'])")
 
 before_script:

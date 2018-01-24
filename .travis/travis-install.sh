@@ -2,10 +2,11 @@
 
 . ${NVM_DIR}/nvm.sh
 
+nvm install 8.9.4
+
 set -x
 set -e
 
-nvm install 8.9.4
 mkdir -p third_party
 bash .travis/prepare-emscripten.sh
 bash .travis/prepare-ninja.sh

@@ -33,8 +33,8 @@ before_script:
   - npm install
 
 script:
-  - meson --buildtype ${BUILDTYPE} build/${BUILDTYPE}
-  - ninja -C build/${BUILDTYPE}
+  - meson --buildtype ${BUILDTYPE} build
+  - ninja -C build
   - npm test
 
 notifications:

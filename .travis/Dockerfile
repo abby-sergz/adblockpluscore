@@ -1,6 +1,8 @@
 FROM my-base-ubuntu-image:latest
 MAINTAINER Sergei Zabolotskikh <sergei@adblockplus.org>
 
+ARG buildtype
+ENV BUILDTYPE $buildtype
 
 # https://wiki.debian.org/Multistrap/Environment#debconf
 ENV DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true
@@ -50,9 +52,4 @@ WORKDIR ${NORMAL_USER_HOME}
 
 RUN curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.8/install.sh | bash
 
-RUN pushd ${PROJECT_HOME} \
-  && bash .travis/travis-install.sh \
-  && pushd ./ensure_dependencies.py \
-  && npm install \
-  && popd
-
+RUN bash ${PROJECT_HOME}/.travis/docker-run.sh

@@ -17,7 +17,8 @@ RUN apt-get update -qqy
 RUN apt-get install -yqq \
   build-essential \
   git-core \
-  python3-pip
+  python3-pip \
+  wget
 
 #================
 # Add normal user

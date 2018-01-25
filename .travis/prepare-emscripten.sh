@@ -7,7 +7,7 @@ wget -qO- https://s3.amazonaws.com/mozilla-games/emscripten/releases/emsdk-porta
 pushd third_party/emsdk-portable
 
 ./emsdk update
-./emsdk install sdk-1.37.3-64bit 2>&1 > /dev/null
+./emsdk install sdk-1.37.3-64bit > /dev/null 2>&1
 ./emsdk activate sdk-1.37.3-64bit
 
 popd

@@ -38,8 +38,6 @@ ENV PROJECT_HOME /home/${NORMAL_USER}/project
 RUN mkdir ${NORMAL_USER_HOME}/.ssh \
   && ssh-keyscan github.com >> ${NORMAL_USER_HOME}/.ssh/known_hosts
 
-RUN chmod g+s ${NORMAL_USER_HOME}
-
 RUN chown -R ${NORMAL_USER}:${NORMAL_GROUP} ${NORMAL_USER_HOME}/.ssh \
   && chmod -R 400 ${NORMAL_USER_HOME}/.ssh \
   && chmod 500 ${NORMAL_USER_HOME}/.ssh \
@@ -47,6 +45,7 @@ RUN chown -R ${NORMAL_USER}:${NORMAL_GROUP} ${NORMAL_USER_HOME}/.ssh \
 
 RUN mkdir ${PROJECT_HOME}
 COPY . ${PROJECT_HOME}
+RUN chown -R ${NORMAL_USER}:${NORMAL_GROUP} ${PROJECT_HOME}
 
 USER ${NORMAL_USER}
 WORKDIR ${NORMAL_USER_HOME}

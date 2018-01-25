@@ -39,6 +39,8 @@ script:
   - meson --buildtype ${BUILDTYPE} build
   - ninja -C build
   - node --version
+  - nvm use default
+  - node --version
   - npm test
 
 notifications:

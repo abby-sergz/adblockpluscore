@@ -15,4 +15,36 @@ RUN apt-get update -qqy
 RUN apt-get install -yqq \
   build-essential \
   git-core \
-  pyhton3-pip
+  python3-pip
+
+#================
+# Add normal user
+#================
+ENV NORMAL_USER application
+ENV NORMAL_GROUP ${NORMAL_USER}
+ENV NORMAL_USER_UID 998
+ENV NORMAL_USER_GID 997
+RUN groupadd -g ${NORMAL_USER_GID} ${NORMAL_GROUP} \
+  && useradd ${NORMAL_USER} --uid ${NORMAL_USER_UID} \
+         --shell /bin/bash  --gid ${NORMAL_USER_GID} \
+         --create-home
+
+ENV NORMAL_USER_HOME /home/${NORMAL_USER}
+RUN mkdir ${NORMAL_USER_HOME}/.ssh
+  && ssh-keyscan github.com >> ${NORMAL_USER_HOME}/.ssh/known_hosts
+RUN chmod g+s ${NORMAL_USER_HOME}
+RUN chown -R ${NORMAL_USER}:${NORMAL_GROUP} ${NORMAL_USER_HOME}/.ssh \
+  && chmod -R 400 ${NORMAL_USER_HOME}/.ssh \
+  && chmod 500 ${NORMAL_USER_HOME}/.ssh \
+  && chmod 600 ${NORMAL_USER_HOME}/.ssh/known_hosts
+RUN mkdir ${NORMAL_USER_HOME}/project
+COPY . ${NORMAL_USER_HOME}/project
+RUN ls -la ${NORMAL_USER_HOME}
+RUN ls -la ${NORMAL_USER_HOME}/project
+
+USER ${NORMAL_USER}
+WORKDIR ${NORMAL_USER_HOME}
+
+RUN curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.8/install.sh | bash
+
+

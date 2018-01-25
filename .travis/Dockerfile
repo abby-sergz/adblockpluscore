@@ -30,7 +30,7 @@ RUN groupadd -g ${NORMAL_USER_GID} ${NORMAL_GROUP} \
          --create-home
 
 ENV NORMAL_USER_HOME /home/${NORMAL_USER}
-RUN mkdir ${NORMAL_USER_HOME}/.ssh
+RUN mkdir ${NORMAL_USER_HOME}/.ssh \
   && ssh-keyscan github.com >> ${NORMAL_USER_HOME}/.ssh/known_hosts
 RUN chmod g+s ${NORMAL_USER_HOME}
 RUN chown -R ${NORMAL_USER}:${NORMAL_GROUP} ${NORMAL_USER_HOME}/.ssh \

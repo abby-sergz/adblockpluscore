@@ -38,6 +38,7 @@ before_script:
 script:
   - meson --buildtype ${BUILDTYPE} build
   - ninja -C build
+  - node --version
   - npm test
 
 notifications:

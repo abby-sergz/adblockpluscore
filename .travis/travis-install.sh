@@ -5,6 +5,8 @@
 nvm install 8.9.4
 nvm use 8.9.4
 
+node --version
+
 set -x
 set -e
 

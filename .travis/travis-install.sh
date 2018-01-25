@@ -3,6 +3,7 @@
 . ${NVM_DIR}/nvm.sh
 
 nvm install 8.9.4
+nvm use 8.9.4
 
 set -x
 set -e

@@ -17,6 +17,7 @@ RUN apt-get update -qqy
 RUN apt-get install -yqq \
   build-essential \
   git-core \
+  python \
   python3-pip \
   wget
 

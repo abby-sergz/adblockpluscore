@@ -35,7 +35,7 @@ RUN groupadd -g ${NORMAL_USER_GID} ${NORMAL_GROUP} \
          --create-home
 
 ENV NORMAL_USER_HOME /home/${NORMAL_USER}
-ENV PROJECT_HOME /home/${NORMAL_USER}/project
+ENV TRAVIS_BUILD_DIR /home/${NORMAL_USER}/project
 
 RUN mkdir ${NORMAL_USER_HOME}/.ssh \
   && ssh-keyscan github.com >> ${NORMAL_USER_HOME}/.ssh/known_hosts
@@ -45,13 +45,13 @@ RUN chown -R ${NORMAL_USER}:${NORMAL_GROUP} ${NORMAL_USER_HOME}/.ssh \
   && chmod 500 ${NORMAL_USER_HOME}/.ssh \
   && chmod 600 ${NORMAL_USER_HOME}/.ssh/known_hosts
 
-RUN mkdir ${PROJECT_HOME}
-COPY . ${PROJECT_HOME}
-RUN chown -R ${NORMAL_USER}:${NORMAL_GROUP} ${PROJECT_HOME}
+RUN mkdir ${TRAVIS_BUILD_DIR}
+COPY . ${TRAVIS_BUILD_DIR}
+RUN chown -R ${NORMAL_USER}:${NORMAL_GROUP} ${TRAVIS_BUILD_DIR}
 
 USER ${NORMAL_USER}
 WORKDIR ${NORMAL_USER_HOME}
 
 RUN curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.8/install.sh | bash
 
-RUN bash ${PROJECT_HOME}/.travis/docker-run.sh
+RUN bash ${TRAVIS_BUILD_DIR}/.travis/docker-run.sh

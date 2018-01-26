@@ -14,8 +14,6 @@ dist: trusty
 python: '2.7'
 
 env:
-  global:
-    - PATH=${PATH}:${TRAVIS_BUILD_DIR}/third_party/ninja
   matrix:
     - BUILDTYPE=release
     - BUILDTYPE=debug
@@ -23,11 +21,9 @@ env:
 install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install python3; fi
   - if [[ "$TRAVIS_OS_NAME" != "linux" ]]; then bash .travis/travis-install.sh; fi
-  - export PATH=${PATH}:$(python3 -c "import sysconfig;print(sysconfig.get_paths('posix_user')['scripts'])")
 
 before_script:
-  - ./ensure_dependencies.py
-  - npm install
+  - if [[ "$TRAVIS_OS_NAME" != "linux" ]]; then bash .travis/travis-before_script.sh; fi
 
 script:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then bash .travis/prepare-docker.sh; else bash .travis/travis-script.sh; fi

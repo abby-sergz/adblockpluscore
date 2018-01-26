@@ -19,7 +19,8 @@ RUN apt-get install -yqq \
   git-core \
   python \
   python3-pip \
-  wget
+  wget \
+  unzip
 
 #================
 # Add normal user

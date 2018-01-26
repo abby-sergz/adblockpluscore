@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+. .travis/activate-nodejs.sh
+
 set -x
 set -e
 

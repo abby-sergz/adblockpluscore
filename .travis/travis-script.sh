@@ -1,10 +1,6 @@
 #!/usr/bin/env bash
 
-if [[ -z ${NVM_DIR} ]]; then
-NVM_DIR=${HOME}/.nvm
-fi
-
-. ${NVM_DIR}/nvm.sh
+. .travis/activate-nodejs.sh
 
 set -x
 set -e
@@ -12,5 +8,4 @@ set -e
 
 meson --buildtype ${BUILDTYPE} build
 ninja -C build
-nvm use default
 npm test

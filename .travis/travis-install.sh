@@ -9,8 +9,6 @@ fi
 nvm install 8.9.4
 nvm alias default 8.9.4
 
-node --version
-
 set -x
 set -e
 

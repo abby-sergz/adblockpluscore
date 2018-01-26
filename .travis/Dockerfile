@@ -7,13 +7,8 @@ ENV BUILDTYPE $buildtype
 # https://wiki.debian.org/Multistrap/Environment#debconf
 ENV DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true
 
-# Don't forget to pay attention to manually invalidate cache
 RUN apt-get update -qqy
 
-#=========================
-# Install ssh and git to clone abpcrawler
-# as well as wget to get Firefox
-#=========================
 RUN apt-get install -yqq \
   build-essential \
   git-core \
@@ -22,9 +17,12 @@ RUN apt-get install -yqq \
   wget \
   unzip
 
-#================
+# Chormium deps
+# https://github.com/GoogleChrome/puppeteer/blob/master/docs/troubleshooting.md
+RUN apt-get install -qyy \
+  libpangocairo-1.0-0
+
 # Add normal user
-#================
 ENV NORMAL_USER application
 ENV NORMAL_GROUP ${NORMAL_USER}
 ENV NORMAL_USER_UID 998

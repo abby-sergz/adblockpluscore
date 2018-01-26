@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
+. .travis/activate-nodejs.sh
+
 set -x
 set -e
-
-. .travis/activate-nodejs.sh
 
 ./ensure_dependencies.py
 npm install

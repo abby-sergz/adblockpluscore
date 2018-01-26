@@ -13,5 +13,5 @@ git checkout -b master 06e2983ba995c2e5684f8414b861425c7f5e6369
 docker build --rm -t my-base-ubuntu-image ./image
 popd
 
-docker build --rm -f .travis/Dockerfile -t adblockpluscore-test-image .
+docker build --rm --build-arg buildtype=${BUILDTYPE} -f .travis/Dockerfile -t adblockpluscore-test-image .
 

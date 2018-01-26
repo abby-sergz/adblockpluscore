@@ -13,11 +13,6 @@ dist: trusty
 
 python: '2.7'
 
-addons:
-  apt:
-    packages:
-    - python3-pip
-
 env:
   global:
     - PATH=${PATH}:${TRAVIS_BUILD_DIR}/third_party/ninja

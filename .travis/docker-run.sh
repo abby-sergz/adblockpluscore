@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
 
-. .travis/activate-nodejs.sh
-
 set -x
 set -e
 
 pushd ${PROJECT_HOME}
 
 bash .travis/travis-install.sh
+. .travis/activate-nodejs.sh
 
 # before script
 ./ensure_dependencies.py

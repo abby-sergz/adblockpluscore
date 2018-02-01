@@ -71,7 +71,7 @@ namespace
     {u"popup"_str, TYPE_POPUP},
     {u"genericblock"_str, TYPE_GENERICBLOCK},
     {u"generichide"_str, TYPE_GENERICHIDE},
-    {u"elemhide"_str, TYPE_ELEMHIDE},
+    {u"elemhide"_str, TYPE_ELEMHIDE}
   };
 
   const int defaultTypeMask = INT_MAX & ~(TYPE_DOCUMENT | TYPE_ELEMHIDE |

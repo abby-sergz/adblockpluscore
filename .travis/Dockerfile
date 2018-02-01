@@ -7,10 +7,12 @@ ENV BUILDTYPE $buildtype
 # https://wiki.debian.org/Multistrap/Environment#debconf
 ENV DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true
 
+RUN add-apt-repository ppa:ubuntu-toolchain-r/test
 RUN apt-get update -qqy
 
 RUN apt-get install -yqq \
   build-essential \
+  g++-7 \
   git-core \
   python \
   python3-pip \

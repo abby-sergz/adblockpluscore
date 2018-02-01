@@ -111,7 +111,27 @@ namespace Map_internal
     HashContainer& operator=(HashContainer&&) = default;
 
     explicit HashContainer(const HashContainer& other) = delete;
-    void operator=(const HashContainer& other) = delete;
+    HashContainer& operator=(const HashContainer& other)
+    {
+      if (this == &other)
+        return *this;
+
+      mEntryCount = 0;
+      mBucketCount = other.mBucketCount;
+      allocate();
+
+      // copy entries into the new buffer
+      for (size_type i = 0; i < other.mEntryCount; i++)
+      {
+        entry_type& entry = other.mBuckets[i];
+        if (!entry.is_invalid() && !entry.is_deleted())
+        {
+          *find_bucket(entry.first) = entry;
+          mEntryCount++;
+        }
+      }
+      return *this;
+    }
 
   protected:
     static constexpr size_type MIN_BUCKETS = 1;
@@ -150,7 +170,7 @@ namespace Map_internal
       mBucketCount = bucketCount;
       allocate();
 
-      // Copy old entries into the new buffer
+      // move old entries into the new buffer
       for (size_type i = 0; i < oldCount; i++)
       {
         entry_type& entry = oldBuckets[i];
@@ -311,6 +331,11 @@ public:
   friend struct Map_internal::MapReference<entry_type>;
 
   using super::super;
+  using super::operator=;
+
+  Map()
+  {
+  }
 
   Map(std::initializer_list<entry_type> list)
       : super(list.size())

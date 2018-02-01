@@ -39,15 +39,14 @@ BINDINGS_JS_LIBRARY = files(join_paths('compiled', 'bindings', 'library.js'))
 BINDINGS_GENERATOR = 'bindings.cpp.js'
 BINDINGS_OUTPUT = 'bindings.js'
 COMPILER_OUTPUT = 'compiled.js'
+LINK_PARAMS = []
 # params for emcc compilation
-ADDITIONAL_PARAMS = [ '-O3', '-std=c++1z', '-Wall', '-Werror',
+ADDITIONAL_PARAMS = [ '-O3', '-std=c++1z', '-Wall',
                       '-fno-rtti' ]
 if target_type == 'js'
 # CXXFLAGS specific to emcc
   ADDITIONAL_PARAMS += [ '-m32', '--memory-init-file', '0',
                          '--emit-symbol-map' ]
-else
-  ADDITIONAL_PARAMS += [ '-fsanitize=address' ]
 endif
 # additional params just for core
 CORE_PARAMS = [ '-fno-exceptions' ]
@@ -123,7 +122,7 @@ if buildtype.startswith('debug')
   optional_args += '-g3'
   if target_type == 'native'
     ADDITIONAL_PARAMS += [ '-fsanitize=address' ]
-    LINK_PARAMS = [ '-fsanitize=address' ]
+    LINK_PARAMS += [ '-fsanitize=address' ]
   endif
 endif
 tracing = get_option('tracing')

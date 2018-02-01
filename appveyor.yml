@@ -1,0 +1,35 @@
+version: 1.0.{build}
+pull_requests:
+  do_not_increment_build_number: true
+skip_tags: true
+image: Visual Studio 2017
+configuration:
+- Release
+- Debug
+platform:
+- x64
+- Win32 
+clone_depth: 20
+environment:
+  PYTHON3: "C:\\Python34"
+  PIP3: "%PYTHON3%\\Scripts\\pip"
+
+init:
+- cmd: echo %Platform% %Configuration%
+install:
+- ps: Install-Product node 8.9.4
+- mkdir -p third_party
+- cmd: .appveyor\prepare-emscripten.cmd
+- cmd: rem .appveyor\prepare-ninja.cmd
+- cmd %PIP3% install -q --user meson
+before_build:
+- cmd: ensure_dependencies.py
+
+build_script:
+- cmd: meson --version
+- cmd: ninja -C build
+test_script:
+- cmd: build\%arch%\%Configuration%\tests.exe --gtest_output=xml:tests.xml
+after_test:
+- ps: (new-object net.webclient).UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\tests.xml))
+deploy: off

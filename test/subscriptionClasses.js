@@ -337,7 +337,7 @@ exports.testEscapingFilterSerialization = function(test)
     subsriptionAddFilter(Filter.fromText("x[[x[x[[]x]x"), 1);
     subsriptionAddFilter(Filter.fromText("x\\[]x"), 2);
 
-    withNAD(1, testSerializeParse)(test, subscription, (serializedData) =>
+    testSerializeParse(test, subscription, (serializedData) =>
       test.ok(serializedData.includes("[Subscription filters]\n\\[\\[x\\[x\\[\\[]x]\nx\\[\\[x\\[x\\[\\[]x]x\nx\\\\[]x\n"), "Filters should be escaped"));
   })(Subscription.fromURL("~user~12345"));
   test.done();

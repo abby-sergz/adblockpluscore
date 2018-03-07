@@ -19,17 +19,30 @@
 
 ABP_NS_USING
 
-DownloadableSubscription::DownloadableSubscription(const String& id)
-    : Subscription(classType, id), mFixedTitle(false), mLastCheck(0),
+DownloadableSubscription::DownloadableSubscription(const String& id, const KeyValues& properties)
+    : Subscription(classType, id, properties), mFixedTitle(false), mLastCheck(0),
       mHardExpiration(0), mSoftExpiration(0), mLastDownload(0), mLastSuccess(0),
       mErrorCount(0), mDataRevision(0), mDownloadCount(0)
 {
-  SetTitle(id);
+  const auto* titleProp = findPropertyValue(properties, u"title"_str);
+  SetTitle(titleProp ? *titleProp : id);
+  parseProperty(properties, mFixedTitle, u"fixedTitle"_str);
+  parseProperty(properties, mHomepage, u"homepage"_str);
+  parseProperty(properties, mLastCheck, u"lastCheck"_str);
+  parseProperty(properties, mHardExpiration, u"expires"_str);
+  parseProperty(properties, mSoftExpiration, u"softExpiration"_str);
+  parseProperty(properties, mLastDownload, u"lastDownload"_str);
+  parseProperty(properties, mDownloadStatus, u"downloadStatus"_str);
+  parseProperty(properties, mLastSuccess, u"lastSuccess"_str);
+  parseProperty(properties, mErrorCount, u"errors"_str);
+  parseProperty(properties, mDataRevision, u"version"_str);
+  parseProperty(properties, mRequiredVersion, u"requiredVersion"_str);
+  parseProperty(properties, mDownloadCount, u"downloadCount"_str);
 }
 
-OwnedString DownloadableSubscription::Serialize() const
+OwnedString DownloadableSubscription::SerializeProperties() const
 {
-  OwnedString result(Subscription::Serialize());
+  OwnedString result(Subscription::DoSerializeProperties());
   if (mFixedTitle)
     result.append(u"fixedTitle=true\n"_str);
   if (!mHomepage.empty())

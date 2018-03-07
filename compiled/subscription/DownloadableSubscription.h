@@ -29,7 +29,7 @@ class DownloadableSubscription : public Subscription
 {
 public:
   static constexpr Type classType = Type::DOWNLOADABLE;
-  explicit DownloadableSubscription(const String& id);
+  explicit DownloadableSubscription(const String& id, const KeyValues& properties);
 
   SUBSCRIPTION_PROPERTY(bool, mFixedTitle, SUBSCRIPTION_FIXEDTITLE,
       GetFixedTitle, SetFixedTitle);
@@ -56,7 +56,7 @@ public:
   SUBSCRIPTION_PROPERTY(int, mDownloadCount, NONE,
       GetDownloadCount, SetDownloadCount);
 
-  OwnedString BINDINGS_EXPORTED Serialize() const;
+  OwnedString SerializeProperties() const;
 };
 
 typedef intrusive_ptr<DownloadableSubscription> DownloadableSubscriptionPtr;

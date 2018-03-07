@@ -45,9 +45,10 @@ namespace
   }
 }
 
-UserDefinedSubscription::UserDefinedSubscription(const String& id)
-    : Subscription(classType, id), mDefaults(0)
+UserDefinedSubscription::UserDefinedSubscription(const String& id, const KeyValues& properties)
+    : Subscription(classType, id, properties), mDefaults(0)
 {
+  parseDefaultsProperty(properties, mDefaults);
 }
 
 bool UserDefinedSubscription::IsDefaultFor(const Filter& filter) const
@@ -88,9 +89,9 @@ bool UserDefinedSubscription::RemoveFilterAt(unsigned pos)
   return true;
 }
 
-OwnedString UserDefinedSubscription::Serialize() const
+OwnedString UserDefinedSubscription::SerializeProperties() const
 {
-  OwnedString result(Subscription::Serialize());
+  OwnedString result(Subscription::DoSerializeProperties());
   if (!IsGeneric())
   {
     result.append(u"defaults="_str);
@@ -103,4 +104,24 @@ OwnedString UserDefinedSubscription::Serialize() const
     result.append(u'\n');
   }
   return result;
+}
+
+void UserDefinedSubscription::parseDefaultsProperty(const KeyValues& properties, int& defaults)
+{
+  auto stringDefaultFor = findPropertyValue(properties, u"defaults"_str);
+  if (stringDefaultFor == nullptr)
+    return;
+  String::size_type prevSpacePos = 0;
+  while (prevSpacePos != String::npos)
+  {
+    String::size_type spacePos = stringDefaultFor->find(u' ', prevSpacePos + 1);
+    auto values = SplitString(DependentString(*stringDefaultFor, prevSpacePos), spacePos);
+    if (values.first == u"blocking"_str)
+      defaults |= FilterCategory::BLOCKING;
+    else if (values.first == u"whitelist"_str)
+      defaults |= FilterCategory::WHITELIST;
+    else if (values.first == u"elemhide"_str)
+      defaults |= FilterCategory::ELEMHIDE;
+    prevSpacePos = spacePos;
+  }
 }

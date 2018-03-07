@@ -57,6 +57,9 @@
 
 ABP_NS_BEGIN
 
+class Subscription;
+typedef intrusive_ptr<Subscription> SubscriptionPtr;
+
 class Subscription : public ref_counted
 {
 public:
@@ -74,7 +77,15 @@ public:
     USERDEFINED = 2
   };
 
-  explicit Subscription(Type type, const String& id);
+  typedef std::pair<OwnedString, OwnedString> KeyValue;
+  typedef std::vector<KeyValue> KeyValues;
+
+  static Subscription* BINDINGS_EXPORTED FromID(const String& id)
+  {
+    return FromProperties(id, KeyValues()).release();
+  }
+  static SubscriptionPtr FromProperties(const KeyValues& properties);
+
   ~Subscription();
 
   Type mType;
@@ -96,10 +107,13 @@ public:
 
   Filter* BINDINGS_EXPORTED FilterAt(Filters::size_type index);
   int BINDINGS_EXPORTED IndexOfFilter(const Filter& filter);
-  OwnedString BINDINGS_EXPORTED Serialize() const;
-  OwnedString BINDINGS_EXPORTED SerializeFilters() const;
-
-  static Subscription* BINDINGS_EXPORTED FromID(const String& id);
+  void AddFilter(Filter& filter);
+  const Filters& GetFilters() const
+  {
+    return mFilters;
+  }
+  // behaves similar to virtual function
+  OwnedString SerializeProperties() const;
 
   template<typename T>
   T* As()
@@ -118,8 +132,19 @@ public:
 
     return static_cast<const T*>(this);
   }
-};
 
-typedef intrusive_ptr<Subscription> SubscriptionPtr;
+protected:
+  OwnedString DoSerializeProperties() const;
+  explicit Subscription(Type type, const String& id, const KeyValues& properties);
+  static const String* findPropertyValue(const Subscription::KeyValues& properties, const String& propertyName);
+  template<typename Member>
+  static void parseProperty(const KeyValues& properties, Member& member, const String& key)
+  {
+    if (auto strPropValue = findPropertyValue(properties, key))
+      member = lexical_cast<Member>(*strPropValue);
+  }
+private:
+  static SubscriptionPtr FromProperties(const String& id, const KeyValues& properties);
+};
 
 ABP_NS_END

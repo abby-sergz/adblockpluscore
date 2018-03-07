@@ -31,10 +31,12 @@ namespace
   StringMap<Subscription*> knownSubscriptions(16);
 }
 
-Subscription::Subscription(Type type, const String& id)
+Subscription::Subscription(Type type, const String& id, const KeyValues& properties)
     : mID(id), mType(type), mDisabled(false), mListed(false)
 {
   annotate_address(this, "Subscription");
+  parseProperty(properties, mTitle, u"title"_str);
+  parseProperty(properties, mDisabled, u"disabled"_str);
 }
 
 Subscription::~Subscription()
@@ -59,9 +61,25 @@ int Subscription::IndexOfFilter(const Filter& filter)
   return -1;
 }
 
-OwnedString Subscription::Serialize() const
+void Subscription::AddFilter(Filter& filter)
 {
-  OwnedString result(u"[Subscription]\nurl="_str);
+  mFilters.emplace_back(&filter);
+}
+
+OwnedString Subscription::SerializeProperties() const
+{
+  if (const auto* downcastedSubscription = As<DownloadableSubscription>())
+    return downcastedSubscription->SerializeProperties();
+  else if (const auto* downcastedSubscription = As<UserDefinedSubscription>())
+    return downcastedSubscription->SerializeProperties();
+
+  return DoSerializeProperties();
+}
+
+
+OwnedString Subscription::DoSerializeProperties() const
+{
+  OwnedString result(u"url="_str);
   result.append(mID);
   result.append(u'\n');
   if (!mTitle.empty())
@@ -76,22 +94,7 @@ OwnedString Subscription::Serialize() const
   return result;
 }
 
-OwnedString Subscription::SerializeFilters() const
-{
-  if (!mFilters.size())
-    return OwnedString();
-
-  OwnedString result(u"[Subscription filters]\n"_str);
-  for (const auto& filter : mFilters)
-  {
-    // TODO: Escape [ characters
-    result.append(filter->GetText());
-    result.append(u'\n');
-  }
-  return result;
-}
-
-Subscription* Subscription::FromID(const String& id)
+SubscriptionPtr Subscription::FromProperties(const String& id, const KeyValues& keyValues)
 {
   if (id.empty())
   {
@@ -107,21 +110,18 @@ Subscription* Subscription::FromID(const String& id)
         number /= 10;
       }
     } while (knownSubscriptions.find(randomID));
-    return FromID(randomID);
+    return FromProperties(randomID, keyValues);
   }
 
   auto knownSubscription = knownSubscriptions.find(id);
   if (knownSubscription)
-  {
-    knownSubscription->second->AddRef();
-    return knownSubscription->second;
-  }
+    return SubscriptionPtr(knownSubscription->second);
 
   SubscriptionPtr subscription;
-  if (!id.empty() && id[0] == '~')
-    subscription = SubscriptionPtr(new UserDefinedSubscription(id), false);
+  if (id[0] == '~')
+    subscription.reset(new UserDefinedSubscription(id, keyValues), false);
   else
-    subscription = SubscriptionPtr(new DownloadableSubscription(id), false);
+    subscription.reset(new DownloadableSubscription(id, keyValues), false);
 
   // This is a hack: we looked up the entry using id but create it using
   // subscription->mID. This works because both are equal at this point.
@@ -130,5 +130,21 @@ Subscription* Subscription::FromID(const String& id)
   knownSubscription.assign(subscription->mID, subscription.get());
   exit_context();
 
-  return subscription.release();
+  return subscription;
+}
+
+SubscriptionPtr Subscription::FromProperties(const KeyValues& properties)
+{
+  const String* id = findPropertyValue(properties, u"url"_str);
+  if (id == nullptr || id->empty())
+    return SubscriptionPtr();
+  return FromProperties(*id, properties);
+}
+
+const String* Subscription::findPropertyValue(const Subscription::KeyValues& properties, const String& propertyName)
+{
+  for (const auto& property : properties)
+    if (property.first == propertyName)
+      return &property.second;
+  return nullptr;
 }

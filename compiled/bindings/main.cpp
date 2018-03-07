@@ -37,6 +37,8 @@
 #include "../ElemHide.h"
 #include "../ElemHideEmulation.h"
 #include "../FilterNotifier.h"
+#include "../storage/Parser.h"
+#include "../storage/Serializer.h"
 
 ABP_NS_USING
 
@@ -106,8 +108,6 @@ int main()
         .property("filterCount", &Subscription::GetFilterCount)
         .function("filterAt", &Subscription::FilterAt)
         .function("indexOfFilter", &Subscription::IndexOfFilter)
-        .function("serialize", &Subscription::Serialize)
-        .function("serializeFilters", &Subscription::SerializeFilters)
         .class_function("fromURL", &Subscription::FromID)
         .subclass_differentiator(&Subscription::mType, {
           {Subscription::Type::USERDEFINED, "UserDefinedSubscription"},
@@ -119,8 +119,7 @@ int main()
         .function("makeDefaultFor", &UserDefinedSubscription::MakeDefaultFor)
         .function("isGeneric", &UserDefinedSubscription::IsGeneric)
         .function("insertFilterAt", &UserDefinedSubscription::InsertFilterAt)
-        .function("removeFilterAt", &UserDefinedSubscription::RemoveFilterAt)
-        .function("serialize", &UserDefinedSubscription::Serialize);
+        .function("removeFilterAt", &UserDefinedSubscription::RemoveFilterAt);
 
     class_<DownloadableSubscription,Subscription>("DownloadableSubscription")
         .property("fixedTitle", &DownloadableSubscription::GetFixedTitle, &DownloadableSubscription::SetFixedTitle)
@@ -134,8 +133,7 @@ int main()
         .property("errorCount", &DownloadableSubscription::GetErrorCount, &DownloadableSubscription::SetErrorCount)
         .property("dataRevision", &DownloadableSubscription::GetDataRevision, &DownloadableSubscription::SetDataRevision)
         .property("requiredVersion", &DownloadableSubscription::GetRequiredVersion, &DownloadableSubscription::SetRequiredVersion)
-        .property("downloadCount", &DownloadableSubscription::GetDownloadCount, &DownloadableSubscription::SetDownloadCount)
-        .function("serialize", &DownloadableSubscription::Serialize);
+        .property("downloadCount", &DownloadableSubscription::GetDownloadCount, &DownloadableSubscription::SetDownloadCount);
 
     singleton<FilterStorage>("FilterStorage", &FilterStorage::GetInstance)
         .property("subscriptionCount", &FilterStorage::GetSubscriptionCount)
@@ -169,6 +167,18 @@ int main()
         .function("remove", &ElemHideEmulation::Remove)
         .function("clear", &ElemHideEmulation::Clear)
         .function("getRulesForDomain", &ElemHideEmulation::GetRulesForDomain);
+
+    class_<Parser>("_FilterStorage_Parser")
+        .property("subscriptionCount", &Parser::GetSubscriptionCount)
+        .function("process", &Parser::Process)
+        .function("finalize", &Parser::Finalize)
+        .function("subscriptionAt", &Parser::SubscriptionAt)
+        .class_function("create", &Parser::Create);
+
+    class_<Serializer>("_FilterStorage_Serializer")
+        .property("data", &Serializer::GetData)
+        .function("serialize", &Serializer::Serialize)
+        .class_function("create", &Serializer::Create);
 
     printBindings();
     RegExpFilter::GenerateCustomBindings();

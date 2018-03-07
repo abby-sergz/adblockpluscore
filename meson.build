@@ -101,6 +101,8 @@ shared_sources = [
   'compiled/filter/RegExpFilter.cpp',
   'compiled/filter/WhitelistFilter.cpp',
   'compiled/storage/FilterStorage.cpp',
+  'compiled/storage/Parser.cpp',
+  'compiled/storage/Serializer.cpp',
   'compiled/subscription/DownloadableSubscription.cpp',
   'compiled/subscription/Subscription.cpp',
   'compiled/subscription/UserDefinedSubscription.cpp',

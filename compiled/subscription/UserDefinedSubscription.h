@@ -31,7 +31,7 @@ private:
 
 public:
   static constexpr Type classType = Type::USERDEFINED;
-  explicit UserDefinedSubscription(const String& id);
+  explicit UserDefinedSubscription(const String& id, const KeyValues& properties);
   bool BINDINGS_EXPORTED IsDefaultFor(const Filter& filter) const;
   void BINDINGS_EXPORTED MakeDefaultFor(const Filter& filter);
   bool BINDINGS_EXPORTED IsGeneric() const
@@ -40,7 +40,9 @@ public:
   }
   void BINDINGS_EXPORTED InsertFilterAt(Filter& filter, unsigned pos);
   bool BINDINGS_EXPORTED RemoveFilterAt(unsigned pos);
-  OwnedString BINDINGS_EXPORTED Serialize() const;
+  OwnedString SerializeProperties() const;
+private:
+  static void parseDefaultsProperty(const KeyValues& properties, int& member);
 };
 
 typedef intrusive_ptr<UserDefinedSubscription> UserDefinedSubscriptionPtr;

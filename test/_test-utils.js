@@ -44,3 +44,38 @@ exports.withNAD = function(nativeArgPosition, fn, thisObj)
     }
   };
 };
+
+/**
+ * Compares only prototype properties of converted from C++ objects.
+ *
+ * @param {Object} test - test
+ * @param {Object} value - an inspecting object
+ * @param {Object} expected - an expected object
+ * @param {Object=} specialPropertyTesters - a dictionary with entries
+ *        specifying a special testing function for properties which names are
+ *        keys. The testing functions are corresponding values. If there is no
+ *        such key in the dictionary then `test.equal` is used a the tester.
+ * @param {Object=} valuePrototype - for internal usage. The prototype of
+ *        the inspecting object from its inheritance chain, whose own
+ *        properties have been already tested at the previous step. The
+ *        function calls recursively itself in order to compare properties
+ *        defined in all base prototypes.
+ *        If the value is undefined then the parameter value is used.
+ * @param {Object} expectedPrototype - for internal usage, see valuePrototype.
+ */
+function testEqualObjProperties(test, value, expected, specialPropertyTesters,
+  valuePrototype, expectedPrototype)
+{
+  valuePrototype = Object.getPrototypeOf(valuePrototype ? valuePrototype : value);
+  expectedPrototype = Object.getPrototypeOf(expectedPrototype ? expectedPrototype : expected);
+  test.ok(valuePrototype === expectedPrototype, "Wrong inheritance chains, they are likely different objects");
+  if (!valuePrototype)
+    return;
+  let propDescriptions = Object.getOwnPropertyDescriptors(expectedPrototype);
+  for (let propName in propDescriptions)
+    if ("get" in propDescriptions[propName])
+      ((specialPropertyTesters && propName in specialPropertyTesters) ?
+        specialPropertyTesters[propName] : test.equal)(value[propName], expected[propName], "Property: " + propName);
+  testEqualObjProperties(test, value, expected, specialPropertyTesters, valuePrototype, expectedPrototype);
+}
+exports.testEqualObjProperties = testEqualObjProperties;

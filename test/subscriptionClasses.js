@@ -18,12 +18,15 @@
 "use strict";
 
 let {createSandbox} = require("./_common");
+const {withNAD, testEqualObjProperties} = require("./_test-utils");
 
 let Filter = null;
 let Subscription = null;
 let SpecialSubscription = null;
 let DownloadableSubscription = null;
 let FilterNotifier = null;
+let Parser = null;
+let Serializer = null;
 
 exports.setUp = function(callback)
 {
@@ -35,18 +38,73 @@ exports.setUp = function(callback)
     } = sandboxedRequire("../lib/subscriptionClasses")
   );
   ({FilterNotifier} = sandboxedRequire("../lib/filterNotifier"));
+  ({Parser, Serializer} = sandboxedRequire("../lib/filterStorage"));
   callback();
 };
 
-function compareSubscription(test, url, expected, postInit)
+function testEqualSubscriptions(test, value, expected)
 {
-  expected.push("[Subscription]");
+  testEqualObjProperties(test, value, expected,
+    {
+      filters(propValue, expectedPropValue, message)
+      {
+        let {filterCount} = expected;
+        test.equal(value.filterCount, filterCount, "Different number of filters");
+        for (let i = 0; i < filterCount; ++i)
+          withNAD([1, 2], testEqualObjProperties)(test, value.filterAt(i), expected.filterAt(i));
+      }
+    });
+}
+
+function serializeSubscription(subscription)
+{
+  let serializer = Serializer.create();
+  try
+  {
+    serializer.serialize(subscription);
+    return serializer.data;
+  }
+  finally
+  {
+    serializer.delete();
+  }
+}
+
+function createSubscription(url, postInit)
+{
   let subscription = Subscription.fromURL(url);
-  if (postInit)
-    postInit(subscription);
-  let result = subscription.serialize().trim().split("\n");
-  test.equal(result.sort().join("\n"), expected.sort().join("\n"), url);
-  subscription.delete();
+  try
+  {
+    if (postInit)
+      postInit(subscription);
+  }
+  catch (ex)
+  {
+    subscription.delete();
+    subscription = null;
+    throw ex;
+  }
+  return subscription;
+}
+
+function testSerializeParse(test, subscription, processSerialized)
+{
+  let serializedData = serializeSubscription(subscription);
+  if (processSerialized)
+    processSerialized(serializedData);
+  let parser = Parser.create();
+  try
+  {
+    for (let line of serializedData.split("\n"))
+      parser.process(line);
+    parser.finalize();
+    test.equal(parser.subscriptionCount, 1);
+    withNAD(1, testEqualSubscriptions)(test, parser.subscriptionAt(0), subscription);
+  }
+  finally
+  {
+    parser.delete();
+  }
 }
 
 exports.testSubscriptionClassDefinitions = function(test)
@@ -58,21 +116,16 @@ exports.testSubscriptionClassDefinitions = function(test)
   test.done();
 };
 
-exports.testSubscriptionsWithState = function(test)
+exports.testSerializationParsingPreservesSubscriptionProperties = function(test)
 {
-  compareSubscription(test, "~fl~", ["url=~fl~"]);
-  compareSubscription(test, "http://test/default", ["url=http://test/default", "title=http://test/default"]);
-  compareSubscription(test, "http://test/default_titled", ["url=http://test/default_titled", "title=test"], subscription =>
-  {
-    subscription.title = "test";
-  });
-  compareSubscription(test, "http://test/non_default", [
-    "url=http://test/non_default", "title=test", "fixedTitle=true",
-    "disabled=true", "lastSuccess=20015998341138",
-    "lastDownload=5124097847590911", "lastCheck=18446744069414584320",
-    "softExpiration=2682143778081159", "expires=4294967295",
-    "downloadStatus=foo", "errors=3", "version=24", "requiredVersion=0.6"
-  ], subscription =>
+  let localTestSerializeParse = (url, postInit) =>
+    withNAD(1, testSerializeParse)(test, createSubscription(url, postInit));
+  localTestSerializeParse("~fl~");
+  localTestSerializeParse("http://test/default");
+  localTestSerializeParse("http://test/default_titled", subscription =>
+    subscription.title = "test"
+  );
+  localTestSerializeParse("http://test/non_default", subscription =>
   {
     subscription.title = "test";
     subscription.fixedTitle = true;
@@ -87,7 +140,7 @@ exports.testSubscriptionsWithState = function(test)
     subscription.version = 24;
     subscription.requiredVersion = "0.6";
   });
-  compareSubscription(test, "~wl~", ["url=~wl~", "disabled=true", "title=Test group"], subscription =>
+  localTestSerializeParse("~wl~", subscription =>
   {
     subscription.title = "Test group";
     subscription.disabled = true;
@@ -125,26 +178,32 @@ exports.testSubscriptionDefaults = function(test)
     // Invalid elemhide filter. Incorrectly classified as blocking.
     // See https://issues.adblockplus.org/ticket/6234
     ["blocking", "foo#@?#:-abp-properties(foo)"],
-    ["", "!test"],
-    ["", "/??/"],
+    [null, "!test"],
+    [null, "/??/"],
     ["blocking whitelist", "test", "@@test"],
     ["blocking elemhide", "test", "##test"]
   ];
 
   for (let [defaults, ...filters] of tests)
   {
-    let expected = ["url=~user~" + filters.join("~")];
-    if (defaults)
-      expected.push("defaults= " + defaults);
-    compareSubscription(test, "~user~" + filters.join("~"), expected, subscription =>
-    {
-      for (let text of filters)
+    withNAD(1, testSerializeParse)(test, createSubscription("~user~" + filters.join("~"),
+      subscription =>
       {
-        let filter = Filter.fromText(text);
-        subscription.makeDefaultFor(filter);
-        filter.delete();
-      }
-    });
+        for (let text of filters)
+          withNAD(0, subscription.makeDefaultFor, subscription)(Filter.fromText(text));
+      }), (serializedData) =>
+      {
+        let foundDefaults = null;
+        for (let line of serializedData.split("\n"))
+        {
+          if (line.startsWith("defaults="))
+          {
+            foundDefaults = line;
+            break;
+          }
+        }
+        test.equal(foundDefaults, defaults ? "defaults= " + defaults : null, "unexpected serialization of defaults");
+      });
   }
   test.done();
 };
@@ -245,24 +304,42 @@ exports.testSpecialSubscriptionFilters = function(test)
 
 exports.testFilterSerialization = function(test)
 {
-  let filter1 = Filter.fromText("filter1");
-  let filter2 = Filter.fromText("filter2");
+  withNAD([0, 1, 2], (subscription, filter1, filter2) =>
+  {
+    testSerializeParse(test, subscription, (serializedData) =>
+      test.ok(!serializedData.includes("[Subscription filters]"), "Unexpected filters section")
+    );
 
-  let subscription = Subscription.fromURL("~user~12345");
-  test.equal(subscription.serializeFilters(), "", "No filters added");
+    subscription.insertFilterAt(filter1, 0);
+    subscription.insertFilterAt(filter1, 1);
+    subscription.insertFilterAt(filter2, 1);
 
-  subscription.insertFilterAt(filter1, 0);
-  subscription.insertFilterAt(filter1, 1);
-  subscription.insertFilterAt(filter2, 1);
-  test.equal(subscription.serializeFilters(), "[Subscription filters]\nfilter1\nfilter2\nfilter1\n", "Three filters added");
+    testSerializeParse(test, subscription, (serializedData) =>
+      test.ok(serializedData.includes("[Subscription filters]\nfilter1\nfilter2\nfilter1\n"), "Three filters added")
+    );
 
-  subscription.removeFilterAt(0);
-  test.equal(subscription.serializeFilters(), "[Subscription filters]\nfilter2\nfilter1\n", "One filter removed");
+    subscription.removeFilterAt(0);
+    testSerializeParse(test, subscription, (serializedData) =>
+      test.ok(serializedData.includes("[Subscription filters]\nfilter2\nfilter1\n"), "One filter removed")
+    );
+  })(Subscription.fromURL("~user~12345"), Filter.fromText("filter1"), Filter.fromText("filter2"));
 
-  subscription.delete();
-  filter1.delete();
-  filter2.delete();
+  test.done();
+};
 
+exports.testEscapingFilterSerialization = function(test)
+{
+  withNAD(0, subscription =>
+  {
+    let subsriptionAddFilter = withNAD(0, subscription.insertFilterAt, subscription);
+
+    subsriptionAddFilter(Filter.fromText("[[x[x[[]x]"), 0);
+    subsriptionAddFilter(Filter.fromText("x[[x[x[[]x]x"), 1);
+    subsriptionAddFilter(Filter.fromText("x\\[]x"), 2);
+
+    withNAD(1, testSerializeParse)(test, subscription, (serializedData) =>
+      test.ok(serializedData.includes("[Subscription filters]\n\\[\\[x\\[x\\[\\[]x]\nx\\[\\[x\\[x\\[\\[]x]x\nx\\\\[]x\n"), "Filters should be escaped"));
+  })(Subscription.fromURL("~user~12345"));
   test.done();
 };
 

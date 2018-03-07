@@ -40,12 +40,12 @@ namespace
 
   bool IsSubscriptionFiltersSection(const String& value)
   {
-    return ::IsSection(value, u"subscription filters"_str);
+    return IsSection(value, u"subscription filters"_str);
   }
 
-  Subscription::KeyValue CreateKeyValue(const std::pair<DependentString, DependentString>& pair)
+  KeyValue CreateKeyValue(const std::pair<DependentString, DependentString>& pair)
   {
-    Subscription::KeyValue retValue;
+    KeyValue retValue;
     retValue.first = TrimSpaces(pair.first);
     retValue.second = TrimSpaces(pair.second);
     return retValue;

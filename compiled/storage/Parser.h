@@ -57,9 +57,9 @@ private:
   // State memebers:
   // Initial State
   // it's also the parser member
-  Subscription::KeyValues mFileProperties;
+  KeyValues mFileProperties;
   // [Subscription] section
-  Subscription::KeyValues mSubscriptionProperties;
+  KeyValues mSubscriptionProperties;
   // [Subscription filters] section
   SubscriptionPtr mSubscription;
 };

@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "../base.h"
+#include "../KeyValues.h"
 #include "../filter/Filter.h"
 #include "../String.h"
 #include "../FilterNotifier.h"
@@ -76,9 +77,6 @@ public:
     DOWNLOADABLE = 1,
     USERDEFINED = 2
   };
-
-  typedef std::pair<OwnedString, OwnedString> KeyValue;
-  typedef std::vector<KeyValue> KeyValues;
 
   static Subscription* BINDINGS_EXPORTED FromID(const String& id)
   {

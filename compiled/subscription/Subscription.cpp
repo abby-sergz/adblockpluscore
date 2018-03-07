@@ -141,7 +141,7 @@ SubscriptionPtr Subscription::FromProperties(const KeyValues& properties)
   return FromProperties(*id, properties);
 }
 
-const String* Subscription::findPropertyValue(const Subscription::KeyValues& properties, const String& propertyName)
+const String* Subscription::findPropertyValue(const KeyValues& properties, const String& propertyName)
 {
   for (const auto& property : properties)
     if (property.first == propertyName)

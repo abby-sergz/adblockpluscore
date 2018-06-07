@@ -21,7 +21,7 @@ environment:
 init:
 - cmd: echo %Platform% %Configuration%
 install:
-- cmd: cmd /C %PIP3% install --upgrade pip
+- cmd: cmd /C %PYTHON3%\python.exe -m pip install --upgrade pip
 - cmd: cmd /C %PIP3% install -q --user meson
 before_build:
 - cmd: ensure_dependencies.py

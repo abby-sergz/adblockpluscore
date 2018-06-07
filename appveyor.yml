@@ -9,9 +9,9 @@ configuration:
 - debug
 
 environment:
-  PYTHON3: "C:\\Python34"
+  PYTHON3: "C:\\Python36"
   PIP3: "%PYTHON3%\\Scripts\\pip"
-  PYTHONPATH: "%APPDATA%\\python\\python34\\site-packages"
+  PYTHONPATH: "%APPDATA%\\python\\python36\\site-packages"
   matrix:
   - MSBUILD_PLATFORM: x64
     BITNESS: 64

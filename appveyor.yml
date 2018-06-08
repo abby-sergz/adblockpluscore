@@ -23,6 +23,8 @@ init:
 install:
 - cmd: cmd /C %PYTHON3%\python.exe -m pip install --upgrade pip setuptools wheel
 - cmd: cmd /C %PIP3% install -q --user meson
+- cmd: dir /S %APPDATA%\Local\Programs
+- cmd: dir %APPDATA%\Roaming
 before_build:
 - cmd: ensure_dependencies.py
 
